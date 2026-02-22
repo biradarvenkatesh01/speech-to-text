@@ -62,10 +62,12 @@ Transcript:
 Format strictly:
 
 possible disease: [list any potential diagnoses based on the transcript]
-Subjective:
-Objective:
-Assessment:
-Plan:
+posiible treatment: [list any potential treatments mentioned or implied in the transcript]
+possible medication: [list any potential medications mentioned or implied in the transcript]
+Subjective: [Summarize the patient's subjective complaints and history based on the transcript]
+Objective: [Summarize the objective findings, such as physical exam results or test results, based on the transcript]
+Assessment: [Provide a clinical assessment or diagnosis based on the subjective and objective information]
+Plan: [Provide a plan for treatment or follow-up based on the assessment]
 `;
 
     const result = await model.generateContent(prompt);
