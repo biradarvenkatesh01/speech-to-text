@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Speech to Text App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #startBtn {
+      background: #28a745;
+      color: white;
+    }
+
+    #stopBtn {
+      background: #dc3545;
+      color: white;
+    }
+
+    #result {
+      margin-top: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      min-height: 60px;
+      font-size: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .loading {
+      color: orange;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎤 Speech to Text (Live Production)</h2>
+
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+
+  <div id="result">Transcript will appear here...</div>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const resultDiv = document.getElementById("result");
+
+    const BACKEND_URL = "https://speech-to-text-1-hm5c.onrender.com/transcribe";
+
+    startBtn.addEventListener("click", async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.start();
+
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        resultDiv.className = "";
+        resultDiv.innerText = "🎙 Recording...";
+
+      } catch (err) {
+        console.error(err);
+        resultDiv.className = "error";
+        resultDiv.innerText = "Microphone access denied.";
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      mediaRecorder.stop();
+
+      mediaRecorder.onstop = async () => {
+        resultDiv.className = "loading";
+        resultDiv.innerText = "⏳ Processing... (First request may take 20-30s due to server cold start)";
+
+        const blob = new Blob(audioChunks, { type: "audio/webm" });
+
+        const formData = new FormData();
+        formData.append("audio", blob, "recording.webm");
+
+        try {
+          const response = await fetch(BACKEND_URL, {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await response.json();
+
+          console.log("Backend Response:", data);
+
+          if (data.success && data.transcript) {
+            resultDiv.className = "success";
+            resultDiv.innerText = "📝 " + data.transcript;
+          } else {
+            resultDiv.className = "error";
+            resultDiv.innerText = "Unexpected response: " + JSON.stringify(data);
+          }
+
+        } catch (error) {
+          console.error("Fetch error:", error);
+          resultDiv.className = "error";
+          resultDiv.innerText = "❌ Request failed. Check console.";
+        }
+
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+    });
+  </script>
+
+</body>
+</html>

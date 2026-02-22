@@ -40,7 +40,7 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
     const response = await client.speechToText.transcribe({
       file: audioFile,
       model: "saaras:v3",
-      mode: "transcribe"
+      mode: "translate"
     });
 
     console.log("FULL SARVAM RESPONSE:", response);
