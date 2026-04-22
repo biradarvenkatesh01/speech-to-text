@@ -100,7 +100,7 @@ Plan:
 `;
 
     const completion = await openRouter.chat.send({
-      model: "meta-llama/llama-3.3-70b-instruct:free",
+      model: "openrouter/auto",
       messages: [
         {
           role: "system",
