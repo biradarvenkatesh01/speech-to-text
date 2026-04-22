@@ -100,7 +100,7 @@ Plan:
 `;
 
     const completion = await openRouter.chat.send({
-      model: "openrouter/auto",
+      model: "openrouter/free",
       messages: [
         {
           role: "system",
