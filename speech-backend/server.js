@@ -69,6 +69,8 @@ Subjective: [Summarize the patient's subjective complaints and history based on 
 Objective: [Summarize the objective findings, such as physical exam results or test results, based on the transcript]
 Assessment: [Provide a clinical assessment or diagnosis based on the subjective and objective information]
 Plan: [Provide a plan for treatment or follow-up based on the assessment]
+
+dont leave any of these empty, give some content for each one of these.
 `;
 
     const completion = await openRouter.chat.send({
