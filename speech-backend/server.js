@@ -55,27 +55,62 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
     console.log("📝 Transcript:", transcript);
 
     const prompt = `
-Generate a structured SOAP note from this transcript.
+You are an expert medical scribe and clinical documentation specialist.
+
+A doctor-patient conversation has been transcribed below. Generate a highly detailed, accurate, and professional SOAP note from it.
+
+Rules:
+- Extract every clinical detail mentioned, no matter how small
+- If something is not mentioned in the transcript, write "Not mentioned"
+- Do NOT make up or assume any information not present in the transcript
+- Use proper medical terminology
 
 Transcript:
 "${transcript}"
 
-Format strictly:
+Generate the SOAP note in this exact format:
 
-possible disease: [list any potential diagnoses based on the transcript]
-posiible treatment: [list any potential treatments mentioned or implied in the transcript]
-possible medication: [list any potential medications mentioned or implied in the transcript]
-Subjective: [Summarize the patient's subjective complaints and history based on the transcript]
-Objective: [Summarize the objective findings, such as physical exam results or test results, based on the transcript]
-Assessment: [Provide a clinical assessment or diagnosis based on the subjective and objective information]
-Plan: [Provide a plan for treatment or follow-up based on the assessment]
+Possible Disease: [Potential diagnoses with brief clinical reasoning]
+Possible Treatment: [Treatments mentioned or clinically implied]
+Possible Medication: [Medications mentioned or commonly used for above conditions]
 
-dont leave any of these empty, give some content for each one of these.
+Subjective:
+- Chief Complaint: [Main reason for visit]
+- History of Present Illness: [Symptoms, onset, duration, severity, aggravating/relieving factors]
+- Past Medical History: [Prior conditions mentioned]
+- Current Medications: [Medications patient is already taking]
+- Allergies: [Any allergies mentioned]
+- Family History: [Any family history mentioned]
+- Social History: [Lifestyle, smoking, alcohol etc. if mentioned]
+
+Objective:
+- Vital Signs: [Any vitals mentioned]
+- Physical Examination: [Exam findings]
+- Investigations/Lab Results: [Any tests or results mentioned]
+
+Assessment:
+[Clinical assessment and working diagnosis based on subjective and objective data]
+
+Plan:
+- Investigations Ordered: [Tests to be done]
+- Treatment: [Treatment plan]
+- Medications: [Prescribed medications with dosage if mentioned]
+- Follow-up: [Follow-up instructions]
+- Patient Education: [Advice or instructions given to patient]
 `;
 
     const completion = await openRouter.chat.send({
-      model: "google/gemini-2.0-flash-001",
-      messages: [{ role: "user", content: prompt }],
+      model: "meta-llama/llama-3.3-70b-instruct:free",
+      messages: [
+        {
+          role: "system",
+          content: "You are a highly experienced medical scribe and clinical documentation specialist. Generate accurate, detailed, and professional SOAP notes from doctor-patient conversation transcripts. Never fabricate clinical details."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
       stream: false,
     });
 
