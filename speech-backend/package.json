@@ -8,8 +8,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@huggingface/inference": "^4.13.12",
+    "@openrouter/sdk": "^0.1.27",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",

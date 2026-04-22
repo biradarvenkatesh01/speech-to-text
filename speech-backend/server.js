@@ -6,7 +6,7 @@ import multer from "multer";
 import cors from "cors";
 import fs from "fs";
 import { SarvamAIClient } from "sarvamai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenRouter } from "@openrouter/sdk";
 
 const app = express();
 app.use(cors());
@@ -18,8 +18,8 @@ if (!process.env.SARVAM_API_KEY) {
   process.exit(1);
 }
 
-if (!process.env.GEMINI_API_KEY) {
-  console.error("GEMINI_API_KEY missing!");
+if (!process.env.OPENROUTER_API_KEY) {
+  console.error("OPENROUTER_API_KEY missing!");
   process.exit(1);
 }
 
@@ -29,8 +29,9 @@ const sarvamClient = new SarvamAIClient({
   apiSubscriptionKey: process.env.SARVAM_API_KEY
 });
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+const openRouter = new OpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 app.post("/transcribe", upload.single("audio"), async (req, res) => {
   try {
@@ -50,8 +51,8 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
     fs.unlinkSync(filePath);
 
     const transcript = sttResponse.transcript;
-    
-console.log("📝 Transcript:", transcript);
+
+    console.log("📝 Transcript:", transcript);
 
     const prompt = `
 Generate a structured SOAP note from this transcript.
@@ -70,8 +71,13 @@ Assessment: [Provide a clinical assessment or diagnosis based on the subjective 
 Plan: [Provide a plan for treatment or follow-up based on the assessment]
 `;
 
-    const result = await model.generateContent(prompt);
-    const soapNote = result.response.text();
+    const completion = await openRouter.chat.send({
+      model: "google/gemini-2.0-flash-001",
+      messages: [{ role: "user", content: prompt }],
+      stream: false,
+    });
+
+    const soapNote = completion.choices[0].message.content;
 
     res.json({
       success: true,
@@ -82,7 +88,7 @@ Plan: [Provide a plan for treatment or follow-up based on the assessment]
     console.log("🧾 SOAP Note:", soapNote);
 
   } catch (error) {
-    console.error("Gemini Error:", error);
+    console.error("OpenRouter Error:", error);
     res.status(500).json({
       success: false,
       error: error.message
